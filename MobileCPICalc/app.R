@@ -20,12 +20,9 @@ calcIncr <- function(price, rate) {
 }
 
 # external variables
-rateCPI23 = 10
 dateCPI23 = as.Date('2023-03-31')
-rateCPI24 = 3
 dateCPI24 = as.Date('2024-03-31')
 startDate = as.Date('2022-12-01')
-
 
 
 # Define UI for application that draws a histogram
@@ -34,8 +31,10 @@ ui <- dashboardPage(
   dashboardSidebar(
     sliderInput('contractLength', "Length of Contract", 0,36,24, step = 6),
     textInput('startPrice', "Initial Monthly Cost (£)", 37.99),
-    textInput('upfront', "Upfront Cost (£)", 99)
-
+    numericInput('upfront', "Upfront Cost (£)", 99),
+    numericInput('rateCPI23', "CPI in 2023 (%)", 10),
+    numericInput('rateCPI24', "CPI in 2024 (%)", 3)
+    
   ),
   dashboardBody(
     fluidRow(
@@ -64,14 +63,14 @@ server <- function(input, output, session) {
       # calc 2023 increase
       mutate(
         Price = case_when(
-          Month > dateCPI23 ~ calcIncr(Price, rateCPI23),
+          Month > dateCPI23 ~ calcIncr(Price, input$rateCPI23),
           TRUE ~ as.numeric(Price)
         )
       ) %>%
       # calc 2024 increase
       mutate(
         Price = case_when(
-          Month > dateCPI24 ~ calcIncr(Price, rateCPI24),
+          Month > dateCPI24 ~ calcIncr(Price, input$rateCPI24),
           TRUE ~ as.numeric(Price)
         )
       )
@@ -85,9 +84,9 @@ server <- function(input, output, session) {
   output$finalCost <- renderInfoBox({
     df <- dataInput()
     # calc total cost
-    total = sum(df$Price) + as.numeric(input$upfront)
+    total = sum(df$Price) + input$upfront
     
-    infoBox("Total Cost", sprintf("£%.2f", total))
+    infoBox("Total Cost", sprintf("£%.2f", total), icon = icon('chart-bar'))
     
   })
   
