@@ -20,9 +20,6 @@ calcIncr <- function(price, rate) {
 }
 
 # external variables
-contractLength = 24
-startPrice = 37.99
-upfrontCost = 99
 rateCPI23 = 10
 dateCPI23 = as.Date('2023-03-31')
 rateCPI24 = 3
@@ -36,7 +33,9 @@ ui <- dashboardPage(
   dashboardHeader(title = "Mobile CPI Calculator"),
   dashboardSidebar(
     sliderInput('contractLength', "Length of Contract", 0,36,24, step = 6),
-    textInput('startPrice', "Initial Monthly Cost")
+    textInput('startPrice', "Initial Monthly Cost (£)", 37.99),
+    textInput('upfront', "Upfront Cost (£)", 99)
+
   ),
   dashboardBody(
     fluidRow(
@@ -49,47 +48,51 @@ ui <- dashboardPage(
 )
 
 # Define server logic required to draw a histogram
-server <- function(input, output) {
+server <- function(input, output, session) {
 
-  
-  # calc end of contract
-  endDate = startDate %m+% months(contractLength) - days(1)
-  # generate list of months over contract
-  contractMonths = seq(startDate, endDate, "month")
-  
-  # create data from
-  df = data.frame(Month = contractMonths, Price = startPrice)
-  
-  
-  df = df %>% 
-    # calc 2023 increase
-    mutate(
-      Price = case_when(
-        Month > dateCPI23 ~ calcIncr(Price, rateCPI23),
-        TRUE ~ as.numeric(Price)
+  dataInput <- reactive({
+    # calc end of contract
+    endDate = startDate %m+% months(as.numeric(input$contractLength)) - days(1)
+    # generate list of months over contract
+    contractMonths = seq(startDate, endDate, "month")
+    
+    # create data from
+    df = data.frame(Month = contractMonths, Price = as.numeric(input$startPrice))
+    
+    
+    df = df %>% 
+      # calc 2023 increase
+      mutate(
+        Price = case_when(
+          Month > dateCPI23 ~ calcIncr(Price, rateCPI23),
+          TRUE ~ as.numeric(Price)
+        )
+      ) %>%
+      # calc 2024 increase
+      mutate(
+        Price = case_when(
+          Month > dateCPI24 ~ calcIncr(Price, rateCPI24),
+          TRUE ~ as.numeric(Price)
+        )
       )
-    ) %>%
-    # calc 2024 increase
-    mutate(
-      Price = case_when(
-        Month > dateCPI24 ~ calcIncr(Price, rateCPI24),
-        TRUE ~ as.numeric(Price)
-      )
-    )
-  
-  
-  df = df %>%
-    mutate(Diff = Price - startPrice)
-  
+    
+    
+    df = df %>%
+      mutate(Diff = Price - as.numeric(input$startPrice))
+    return(df)
+  })
+
   output$finalCost <- renderInfoBox({
+    df <- dataInput()
     # calc total cost
-    total = sum(df$Price) + upfrontCost
+    total = sum(df$Price) + as.numeric(input$upfront)
     
     infoBox("Total Cost", sprintf("£%.2f", total))
     
   })
   
   output$costPlot <- renderPlot({
+    df <- dataInput()
     ggplot(df, aes(x = Month, y = Price)) +
       geom_col() +
         geom_richtext(label = sprintf("+%.2f", df$Diff), size = 2, angle =45) +
