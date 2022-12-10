@@ -1,5 +1,7 @@
 library(lubridate)
 library(dplyr)
+library(ggplot2)
+library(ggtext)
 
 calcIncr <- function(price, rate) {
   newPrice = price * (1+(rate + 3.9)/100)
@@ -43,3 +45,13 @@ df = df %>%
 
 # calc total cost
 sum(df$Price) + upfrontCost
+
+df = df %>%
+  mutate(Diff = Price - startPrice)
+
+ggplot(df, aes(x = Month, y = Price)) +
+  geom_col() +
+  geom_richtext(label = sprintf("+%.2f", df$Diff), size = 2, angle =45) +
+  scale_x_date(date_labels = "%b %y", date_breaks = '1 month') +
+  theme(axis.text.x = element_text(angle = 90),
+        )
