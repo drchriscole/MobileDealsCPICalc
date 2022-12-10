@@ -13,6 +13,7 @@ library(lubridate)
 library(dplyr)
 library(ggplot2)
 library(ggtext)
+library(ggthemes)
 
 calcIncr <- function(price, rate) {
   newPrice = price * (1+(rate + 3.9)/100)
@@ -41,7 +42,7 @@ ui <- dashboardPage(
       infoBoxOutput("finalCost")
     ),
     fluidRow(
-      box(plotOutput('costPlot'))
+      box(plotOutput('costPlot'), width = 12)
     )
   )
 )
@@ -92,12 +93,26 @@ server <- function(input, output, session) {
   
   output$costPlot <- renderPlot({
     df <- dataInput()
-    ggplot(df, aes(x = Month, y = Price)) +
+    ggplot(df, aes(x = Month, y = Price, fill = 'A')) +
       geom_col() +
-        geom_richtext(label = sprintf("+%.2f", df$Diff), size = 2, angle =45) +
-        scale_x_date(date_labels = "%b %y", date_breaks = '1 month') +
-        theme(axis.text.x = element_text(angle = 90),
-        )
+      geom_richtext(aes(label = ifelse(Diff > 0, sprintf("+£%.2f", Diff), NA)), size = 5, angle = 45, nudge_y = 5, fill = 'white') +
+      #geom_richtext(aes(label = ifelse(Diff > 0, sprintf("+£%.2f", Diff), NA)), size = 5, angle =90, nudge_y = -5, fill = NA, colour = 'white', label.colour = NA) +
+      #geom_text(label = sprintf("+£%.2f", df$Diff), size = 4, nudge_y = -4, colour = 'white') +
+      scale_x_date(date_labels = "%b %y", date_breaks = '1 month') +
+      scale_y_continuous(breaks = seq(0,max(df$Price), 5)) +
+      scale_fill_economist() +
+      ylim(c(0, max(df$Price)+8)) +
+      #coord_flip() +
+      labs(x = NULL,
+           y = 'Monthly Cost (£)') +
+      theme_economist() +
+      theme(
+            axis.text = element_text( size = 18),
+            axis.text.x = element_text(angle = 90),
+            axis.title = element_text(face = 'bold', size = 18),
+            legend.position = 'NA'
+            
+      )
     
   })
 }
