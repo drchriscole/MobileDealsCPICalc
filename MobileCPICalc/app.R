@@ -39,7 +39,8 @@ ui <- dashboardPage(
   ),
   dashboardBody(
     fluidRow(
-      infoBoxOutput("finalCost")
+      infoBoxOutput("finalCost"),
+      infoBoxOutput("extraCost")
     ),
     fluidRow(
       box(plotOutput('costPlot'), width = 12)
@@ -81,13 +82,27 @@ server <- function(input, output, session) {
       mutate(Diff = Price - as.numeric(input$startPrice))
     return(df)
   })
-
+  
+  # calc total cost of contract incl. CPI increases
   output$finalCost <- renderInfoBox({
     df <- dataInput()
     # calc total cost
     total = sum(df$Price) + input$upfront
     
-    infoBox("Total Cost", sprintf("£%.2f", total), icon = icon('chart-bar'))
+    infoBox("Total Cost", sprintf("£%.2f", total), 
+            icon = icon('chart-bar'))
+    
+  })
+  
+  # calc addition cost incurred by CPI + 3.9% annual increase
+  output$extraCost <- renderInfoBox({
+    df <- dataInput()
+    
+    extra = sum(df$Price) - (as.numeric(input$startPrice) * input$contractLength)
+    
+    infoBox("Extra Cost Due CPI + 3.9% Increase", sprintf("£%.2f", extra), 
+            icon = icon('money-bill-alt'),
+            color = 'orange')
     
   })
   
@@ -99,9 +114,8 @@ server <- function(input, output, session) {
       #geom_richtext(aes(label = ifelse(Diff > 0, sprintf("+£%.2f", Diff), NA)), size = 5, angle =90, nudge_y = -5, fill = NA, colour = 'white', label.colour = NA) +
       #geom_text(label = sprintf("+£%.2f", df$Diff), size = 4, nudge_y = -4, colour = 'white') +
       scale_x_date(date_labels = "%b %y", date_breaks = '1 month') +
-      scale_y_continuous(breaks = seq(0,max(df$Price), 5)) +
+      scale_y_continuous(breaks = seq(0,max(df$Price), 5), limits = c(0, max(df$Price)+8)) +
       scale_fill_economist() +
-      ylim(c(0, max(df$Price)+8)) +
       #coord_flip() +
       labs(x = NULL,
            y = 'Monthly Cost (£)') +
