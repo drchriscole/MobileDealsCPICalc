@@ -2,6 +2,7 @@ library(lubridate)
 library(dplyr)
 library(ggplot2)
 library(ggtext)
+library(ggthemes)
 
 calcIncr <- function(price, rate) {
   newPrice = price * (1+(rate + 3.9)/100)
@@ -49,9 +50,16 @@ sum(df$Price) + upfrontCost
 df = df %>%
   mutate(Diff = Price - startPrice)
 
-ggplot(df, aes(x = Month, y = Price)) +
+ggplot(df, aes(x = Month, y = Price, fill = 'A')) +
   geom_col() +
-  geom_richtext(label = sprintf("+%.2f", df$Diff), size = 2, angle =45) +
+  geom_richtext(label = sprintf("+£%.2f", df$Diff), size = 6, angle =45, nudge_y = 1, fill = 'white') +
   scale_x_date(date_labels = "%b %y", date_breaks = '1 month') +
-  theme(axis.text.x = element_text(angle = 90),
-        )
+  scale_fill_economist() +
+  labs(x = '',
+       y = 'Monthly Cost (£)') +
+  theme_economist() +
+  theme(axis.text = element_text( size = 18),
+        axis.text.x = element_text(angle = 90),
+        axis.title = element_text(face = 'bold', size = 18),
+        legend.position = 'NA'
+  )
