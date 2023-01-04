@@ -102,7 +102,7 @@ server <- function(input, output, session) {
     extra = sum(df$Price) - (as.numeric(input$startPrice) * input$contractLength)
     
     infoBox("Extra Cost Due CPI + 3.9% Increase", sprintf("£%.2f", extra), 
-            icon = icon('money-bill-alt'),
+            icon = icon('money-bill'),
             color = 'orange')
     
   })
