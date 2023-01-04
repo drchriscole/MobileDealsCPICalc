@@ -23,14 +23,13 @@ calcIncr <- function(price, rate) {
 # external variables
 dateCPI23 = as.Date('2023-03-31')
 dateCPI24 = as.Date('2024-03-31')
-startDate = as.Date('2022-12-01')
-
 
 # Define UI for application that draws a histogram
 ui <- dashboardPage(
   dashboardHeader(title = "Mobile CPI Calculator"),
   dashboardSidebar(
     sliderInput('contractLength', "Length of Contract", 0,36,24, step = 6),
+    dateInput("startDate", "Contract Start Date:", '2022-12-01'),
     textInput('startPrice', "Initial Monthly Cost (£)", 37.99),
     numericInput('upfront', "Upfront Cost (£)", 99),
     numericInput('rateCPI23', "CPI in 2023 (%)", 10),
@@ -52,6 +51,8 @@ ui <- dashboardPage(
 server <- function(input, output, session) {
 
   dataInput <- reactive({
+    # get start date
+    startDate = as.Date(input$startDate)
     # calc end of contract
     endDate = startDate %m+% months(as.numeric(input$contractLength)) - days(1)
     # generate list of months over contract
