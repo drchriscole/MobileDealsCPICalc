@@ -23,6 +23,7 @@ calcIncr <- function(price, rate) {
 # external variables
 dateCPI23 = as.Date('2023-03-31')
 dateCPI24 = as.Date('2024-03-31')
+version = 'v1.0'
 
 # Define UI for application that draws a histogram
 ui <- dashboardPage(
@@ -33,7 +34,17 @@ ui <- dashboardPage(
     textInput('startPrice', "Initial Monthly Cost (£)", 37.99),
     numericInput('upfront', "Upfront Cost (£)", 99),
     numericInput('rateCPI23', "CPI in 2023 (%)", 10),
-    numericInput('rateCPI24', "CPI in 2024 (%)", 3)
+    numericInput('rateCPI24', "CPI in 2024 (%)", 3),
+    tags$head(tags$style(HTML('
+      footer {
+        position: absolute;
+        bottom: 0px;
+        left: 180px;
+        text-align: right;
+        padding: 0px 0px 5px 10px;
+      }
+    '))),
+    tags$footer(version)
     
   ),
   dashboardBody(
